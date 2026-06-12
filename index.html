@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Examen Always On + Auditoría · Checklist por Máquina Virtual</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #eef2f5;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            padding: 2rem 1.5rem;
+            color: #1e2f3a;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* header */
+        .header {
+            background: linear-gradient(145deg, #0f2c3b, #144d6b);
+            color: white;
+            padding: 1.8rem 2rem;
+            border-radius: 36px;
+            margin-bottom: 2rem;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            font-size: 1.9rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 0.5rem;
+        }
+        .header h1 small {
+            background: #ffc107;
+            color: #1e3b4a;
+            font-size: 0.8rem;
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-weight: 500;
+        }
+        .progress-card {
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            padding: 1rem 1.8rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .progress-info {
+            flex: 2;
+            min-width: 180px;
+        }
+        .progress-bar-bg {
+            background: #e2e8f0;
+            border-radius: 40px;
+            height: 14px;
+            width: 100%;
+            margin: 8px 0;
+        }
+        .progress-fill {
+            background: #1e7e34;
+            width: 0%;
+            height: 14px;
+            border-radius: 40px;
+            transition: width 0.25s ease;
+        }
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            background: #eef2f6;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 60px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.85rem;
+        }
+        .btn-primary {
+            background: #2c7da0;
+            color: white;
+        }
+        .btn-primary:hover { background: #1f5f7a; }
+        .btn-warning {
+            background: #ffedd5;
+            color: #b45309;
+        }
+        .vm-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 1.8rem;
+            border-bottom: 2px solid #cbdde6;
+            padding-bottom: 0.8rem;
+        }
+        .vm-btn {
+            background: #ffffff;
+            border: 1px solid #cbdde6;
+            border-radius: 60px;
+            padding: 10px 24px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+        }
+        .vm-btn.active {
+            background: #144d6b;
+            border-color: #144d6b;
+            color: white;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+        }
+        .task-panel {
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        .panel-header {
+            background: #f9fbfd;
+            padding: 1.2rem 2rem;
+            border-bottom: 2px solid #e5edf2;
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .panel-header .ip {
+            font-size: 0.8rem;
+            background: #e9f0f5;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-weight: normal;
+        }
+        .task-list {
+            padding: 1.5rem 2rem;
+        }
+        .task-item {
+            background: #ffffff;
+            border-left: 5px solid #2c7da0;
+            margin-bottom: 1rem;
+            padding: 0.9rem 1rem;
+            border-radius: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            transition: all 0.1s;
+        }
+        .task-item:hover {
+            background: #fefce8;
+        }
+        .task-title {
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 6px;
+        }
+        .task-title input {
+            width: 20px;
+            height: 20px;
+            accent-color: #2c7da0;
+            cursor: pointer;
+        }
+        .task-code {
+            background: #f1f5f9;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            padding: 8px 12px;
+            border-radius: 14px;
+            margin-left: 32px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            color: #1e4663;
+        }
+        .badge-os {
+            background: #e9ecef;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 20px;
+            margin-left: 8px;
+            font-weight: normal;
+        }
+        footer {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #5f7d95;
+            margin-top: 2.5rem;
+        }
+        @media (max-width: 700px) {
+            body { padding: 1rem; }
+            .task-list { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🧩 Examen Final Unidades 5 y 6 <small>Always On + Replicación + Auditoría</small></h1>
+        <p>✅ Checklist interactivo por máquina virtual · Alta disponibilidad SQL Server 2025 · Infraestructura empresarial</p>
+    </div>
+
+    <!-- Barra global de progreso -->
+    <div class="progress-card">
+        <div class="progress-info">
+            <strong>📊 Progreso total del equipo (todas las VMs)</strong>
+            <div class="progress-bar-bg"><div class="progress-fill" id="globalFill"></div></div>
+            <span id="percentText">0%</span> completado
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-primary" id="saveProgressBtn">💾 Guardar progreso</button>
+            <button class="btn" id="loadProgressBtn">🔄 Cargar progreso</button>
+            <button class="btn btn-warning" id="resetProgressBtn">🗑️ Reiniciar todo</button>
+        </div>
+    </div>
+
+    <!-- Selector de máquinas virtuales -->
+    <div class="vm-selector">
+        <button class="vm-btn" data-vm="DC01">🖥️ DC01 · Controlador de dominio</button>
+        <button class="vm-btn" data-vm="SQLNODE01">🗄️ SQLNODE01 · Nodo principal</button>
+        <button class="vm-btn" data-vm="SQLNODE02">📀 SQLNODE02 · Nodo secundario</button>
+        <button class="vm-btn" data-vm="SQLNODE03">✨ SQLNODE03 · Extra (4ª VM)</button>
+    </div>
+
+    <!-- Panel dinámico para mostrar tareas de la VM seleccionada -->
+    <div class="task-panel" id="taskPanel">
+        <div class="panel-header">
+            <span>📌 Tareas pendientes</span>
+            <span class="ip" id="vmIpDisplay"></span>
+        </div>
+        <div class="task-list" id="taskListContainer">
+            <!-- Las tareas se cargarán dinámicamente con JS -->
+        </div>
+    </div>
+
+    <footer>
+        🔁 Cada tarea completada debe ser evidenciada con captura. Fecha límite: 12 de junio 2026. Trabajo colaborativo 3-4 personas.<br>
+        🧪 VM extra (SQLNODE03) añade tercer nodo al AG + suscriptor adicional de replicación.
+    </footer>
+</div>
+
+<script>
+    // --------------------------------------------------------------
+    // DEFINICIÓN DE TAREAS POR MÁQUINA VIRTUAL (DC01, SQLNODE01, SQLNODE02, SQLNODE03)
+    // cada tarea tiene: id, descripcion, comando / explicacion
+    // --------------------------------------------------------------
+    const tasksByVM = {
+        DC01: {
+            ip: "192.168.1.5",
+            tasks: [
+                { id: "dc_1", desc: "Instalar AD Domain Services", cmd: "Install-WindowsFeature AD-Domain-Services -IncludeManagementTools" },
+                { id: "dc_2", desc: "Promover a controlador de dominio (nuevo bosque ventas.local)", cmd: "Install-ADDSForest -DomainName 'ventas.local' -SafeModeAdministratorPassword (ConvertTo-SecureString 'P@ssw0rd' -AsPlainText -Force) -Force" },
+                { id: "dc_3", desc: "Crear usuarios de servicio (svc_sql / svc_cluster)", cmd: "New-ADUser -Name 'svc_sql' -AccountPassword (ConvertTo-SecureString 'P@ssw0rd' -AsPlainText -Force) -Enabled $true\nNew-ADUser -Name 'svc_cluster' -AccountPassword (ConvertTo-SecureString 'P@ssw0rd' -AsPlainText -Force) -Enabled $true" },
+                { id: "dc_4", desc: "Configurar DNS con registros A para SQLNODE01/02/03 y clúster (192.168.1.100)", cmd: "Agregar manualmente desde DNS Manager: SQLNODE01 (192.168.1.10), SQLNODE02 (192.168.1.11), SQLNODE03 (192.168.1.12), SQLCLUSTER (192.168.1.100)" }
+            ]
+        },
+        SQLNODE01: {
+            ip: "192.168.1.10",
+            tasks: [
+                { id: "n1_1", desc: "Unir máquina al dominio ventas.local", cmd: "Unir desde System Properties → ventas.local (reiniciar)" },
+                { id: "n1_2", desc: "Instalar Failover Clustering", cmd: "Install-WindowsFeature Failover-Clustering -IncludeManagementTools" },
+                { id: "n1_3", desc: "Instalar SQL Server 2025 Enterprise Evaluation (motor + conectividad)", cmd: "Setup.exe /ConfigurationFile=MyConfig.INI (habilitar Always On durante instalación)" },
+                { id: "n1_4", desc: "Habilitar Always On (SQL Server Configuration Manager)", cmd: "SQL Server Services → Propiedades SQL Server (MSSQLSERVER) → Always On High Availability → Enable → Reiniciar servicio" },
+                { id: "n1_5", desc: "Validar y crear clúster (New-Cluster)", cmd: "Test-Cluster -Node SQLNODE01,SQLNODE02 -Include 'Storage','Network'\nNew-Cluster -Name SQLCLUSTER -Node SQLNODE01,SQLNODE02 -StaticAddress 192.168.1.100" },
+                { id: "n1_6", desc: "Crear BD VentasCorporativas + tablas + inserts", cmd: "CREATE DATABASE VentasCorporativas; ... INSERT INTO Clientes VALUES ..." },
+                { id: "n1_7", desc: "Cambiar recovery FULL y respaldos iniciales (C:\\Backups)", cmd: "ALTER DATABASE VentasCorporativas SET RECOVERY FULL;\nBACKUP DATABASE ... TO DISK='C:\\Backups\\VentasCorporativas.bak';\nBACKUP LOG ... TO DISK='C:\\Backups\\VentasCorporativas.trn';" },
+                { id: "n1_8", desc: "Crear Availability Group (AG_Ventas) con réplica principal", cmd: "SSMS → Always On → New AG → AG_Ventas, agregar BD, réplica SQLNODE01 (sincrónica + failover automático)" },
+                { id: "n1_9", desc: "Configurar publicación transaccional (Replication)", cmd: "Local Publications → New Publication → Transactional → artículos Clientes/Ventas → nombre Pub_Ventas" }
+            ]
+        },
+        SQLNODE02: {
+            ip: "192.168.1.11",
+            tasks: [
+                { id: "n2_1", desc: "Unir máquina al dominio ventas.local", cmd: "Unir a dominio → reiniciar" },
+                { id: "n2_2", desc: "Instalar Failover Clustering", cmd: "Install-WindowsFeature Failover-Clustering -IncludeManagementTools" },
+                { id: "n2_3", desc: "Instalar SQL Server 2025 Enterprise (misma configuración que nodo1)", cmd: "Setup con características: Motor BD, Always On habilitado" },
+                { id: "n2_4", desc: "Habilitar Always On (SQL Configuration Manager)", cmd: "Mismo paso: Enable Always On y reiniciar servicio" },
+                { id: "n2_5", desc: "Unirse al clúster existente SQLCLUSTER", cmd: "Add-ClusterNode -Name SQLNODE02 -Cluster SQLCLUSTER (desde cualquier nodo)" },
+                { id: "n2_6", desc: "Verificar sincronización de réplica secundaria en Availability Group", cmd: "En SSMS: AG_Ventas → réplica secundaria sincronizada (estado verde)" },
+                { id: "n2_7", desc: "Configurar suscripción transaccional (Suscriptor)", cmd: "Local Subscriptions → New Subscription → Publicador SQLNODE01, base destino VentasCorporativas" },
+                { id: "n2_8", desc: "Validar failover automático (detener SQL en nodo1)", cmd: "Stop-Service MSSQLSERVER en SQLNODE01, verificar que SQLNODE02 asume rol principal y consulta SELECT * FROM Clientes muestra datos" }
+            ]
+        },
+        SQLNODE03: {
+            ip: "192.168.1.12",
+            tasks: [
+                { id: "n3_1", desc: "Unir al dominio ventas.local (IP fija)", cmd: "Configurar IP 192.168.1.12, DNS = 192.168.1.5, unirse a dominio" },
+                { id: "n3_2", desc: "Instalar Failover Clustering", cmd: "Install-WindowsFeature Failover-Clustering -IncludeManagementTools" },
+                { id: "n3_3", desc: "Instalar SQL Server 2025 Enterprise Evaluation", cmd: "Misma versión, habilitar Always On durante instalación" },
+                { id: "n3_4", desc: "Habilitar Always On y reiniciar servicio", cmd: "SQL Server Configuration Manager → habilitar Always On" },
+                { id: "n3_5", desc: "Agregar nodo al clúster Windows", cmd: "Desde SQLNODE01 o PowerShell: Add-ClusterNode -Name SQLNODE03 -Cluster SQLCLUSTER" },
+                { id: "n3_6", desc: "Añadir réplica al Availability Group (modo asíncrono)", cmd: "En SSMS → AG_Ventas → Add Replica → SQLNODE03 → Asynchronous commit (opcional solo lectura)" },
+                { id: "n3_7", desc: "Configurar como suscriptor adicional para replicación transaccional", cmd: "En la publicación Pub_Ventas → New Subscription → SQLNODE03, base VentasCorporativas_Reportes (crear antes)" },
+                { id: "n3_8", desc: "Prueba de integración: insertar en publicador y verificar réplica AG y suscriptor", cmd: "INSERT INTO Clientes VALUES ('ExtraNodo3','Prueba'); SELECT * FROM Clientes en SQLNODE03 (tanto por AG como por replicación)" }
+            ]
+        }
+    };
+
+    // Tareas adicionales de auditoría/monitoreo (unidad 6) – se asigna a SQLNODE01 (puede ejecutarse en cualquier nodo)
+    const auditTasks = [
+        { id: "audit_1", desc: "Activity Monitor (monitoreo en tiempo real)", cmd: "SSMS → Clic derecho servidor → Activity Monitor → capturar CPU/sesiones activas" },
+        { id: "audit_2", desc: "Crear SQL Server Audit (auditoría de eventos)", cmd: "Security → Audits → New Audit (destino archivo C:\\Audit) → Server Audit Spec → Habilitar y ver logs" },
+        { id: "audit_3", desc: "Informes estándar (Schema Changes / User Access)", cmd: "Base de datos VentasCorporativas → Reports → Standard Reports → Schema Changes History / User Access" }
+    ];
+
+    // Agregar tareas de auditoría a SQLNODE01 (para que quede completo)
+    tasksByVM.SQLNODE01.tasks.push(...auditTasks);
+
+    // ----- Funciones del checklist interactivo -----
+    let currentVM = "DC01";   // por defecto
+
+    // Cargar tareas en el panel según VM seleccionada
+    function renderTasks(vmKey) {
+        const vmData = tasksByVM[vmKey];
+        if (!vmData) return;
+        const container = document.getElementById("taskListContainer");
+        const ipSpan = document.getElementById("vmIpDisplay");
+        ipSpan.innerText = vmData.ip || "";
+
+        let html = "";
+        vmData.tasks.forEach(task => {
+            const isChecked = localStorage.getItem(`chk_${task.id}`) === "true";
+            html += `
+                <div class="task-item">
+                    <div class="task-title">
+                        <input type="checkbox" class="task-checkbox" data-id="${task.id}" ${isChecked ? "checked" : ""}>
+                        <strong>📌 ${task.desc}</strong>
+                    </div>
+                    <div class="task-code">${escapeHtml(task.cmd)}</div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+
+        // agregar event listeners a los checkboxes recién creados
+        document.querySelectorAll('.task-checkbox').forEach(cb => {
+            cb.addEventListener('change', (e) => {
+                const id = cb.getAttribute('data-id');
+                localStorage.setItem(`chk_${id}`, cb.checked);
+                updateGlobalProgress();
+            });
+        });
+        updateGlobalProgress();
+    }
+
+    // función para escapar HTML (seguridad)
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+            return c;
+        });
+    }
+
+    // calcular progreso global: sumar todos los checkboxes de todas las VMs (incluyendo la extra)
+    function getAllTaskIds() {
+        let ids = [];
+        for (let vm in tasksByVM) {
+            tasksByVM[vm].tasks.forEach(t => ids.push(t.id));
+        }
+        return ids;
+    }
+
+    function updateGlobalProgress() {
+        const allIds = getAllTaskIds();
+        let total = allIds.length;
+        let completed = 0;
+        for (let id of allIds) {
+            if (localStorage.getItem(`chk_${id}`) === "true") completed++;
+        }
+        const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
+        document.getElementById("percentText").innerText = `${percent}%`;
+        document.getElementById("globalFill").style.width = `${percent}%`;
+    }
+
+    // guardar progreso (ya se guarda automáticamente en cada cambio, pero función manual)
+    function saveToLocal() {
+        // ya está persistente por cada cambio; mostramos mensaje
+        alert("✅ Progreso guardado automáticamente en el navegador.");
+    }
+
+    function loadFromLocal() {
+        // Recargar la interfaz actual para reflejar localStorage
+        renderTasks(currentVM);
+        updateGlobalProgress();
+        alert("📂 Progreso cargado desde almacenamiento local.");
+    }
+
+    function resetAllProgress() {
+        if (!confirm("⚠️ ¿Seguro que deseas borrar TODOS los checkboxes de todas las máquinas virtuales? Esta acción es irreversible.")) return;
+        const allIds = getAllTaskIds();
+        for (let id of allIds) {
+            localStorage.removeItem(`chk_${id}`);
+        }
+        renderTasks(currentVM);
+        updateGlobalProgress();
+        alert("🗑️ Todo el progreso ha sido reiniciado.");
+    }
+
+    // Eventos de UI
+    document.querySelectorAll('.vm-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            // actualizar clase active
+            document.querySelectorAll('.vm-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentVM = btn.getAttribute('data-vm');
+            renderTasks(currentVM);
+        });
+    });
+
+    document.getElementById("saveProgressBtn").addEventListener("click", saveToLocal);
+    document.getElementById("loadProgressBtn").addEventListener("click", loadFromLocal);
+    document.getElementById("resetProgressBtn").addEventListener("click", resetAllProgress);
+
+    // inicializar: cargar DC01 por defecto, restaurar estados previos
+    function init() {
+        // marcar botón activo inicial
+        document.querySelector('.vm-btn[data-vm="DC01"]').classList.add('active');
+        renderTasks("DC01");
+        updateGlobalProgress();
+    }
+    init();
+</script>
+</body>
+</html>
