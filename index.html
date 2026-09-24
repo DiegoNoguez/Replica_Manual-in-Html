@@ -1,730 +1,1085 @@
 <!DOCTYPE html>
-<html lang="es" class="dark scroll-smooth">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Testing Pyramid - Pirámide de Pruebas de Software</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome para íconos -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            dark: '#0b0f19',
-                            card: '#131b2e',
-                            purple: '#7c3aed',
-                            fuchsia: '#c026d3',
-                            cyan: '#06b6d4',
-                            emerald: '#10b981',
-                            amber: '#f59e0b',
-                            rose: '#f43f5e'
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace']
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        body {
-            background-color: #080b12;
-            color: #f3f4f6;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Testing Pyramid - Pirámide de Pruebas de Software</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #030305;
+      --card-bg: rgba(18, 18, 26, 0.55);
+      --card-border: rgba(255, 255, 255, 0.12);
+      --glass-glow: rgba(138, 43, 226, 0.15);
+      --primary: #a855f7;
+      --primary-bright: #c084fc;
+      --secondary: #3b82f6;
+      --accent: #06b6d4;
+      --success: #10b981;
+      --error: #ef4444;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --unit-color: #10b981;
+      --int-color: #f59e0b;
+      --e2e-color: #ef4444;
+    }
 
-        .bg-grid-pattern {
-            background-image: radial-gradient(rgba(124, 58, 237, 0.15) 1px, transparent 0);
-            background-size: 28px 28px;
-        }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
 
-        .glass-panel {
-            background: rgba(19, 27, 46, 0.75);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(168, 85, 247, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.04) 0%, transparent 60%);
+      background-attachment: fixed;
+    }
 
-        .glass-panel:hover {
-            border-color: rgba(124, 58, 237, 0.4);
-        }
+    /* HEADER & NAVIGATION */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(5, 5, 8, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
 
-        .glow-purple {
-            box-shadow: 0 0 30px -5px rgba(124, 58, 237, 0.3);
-        }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: #ffffff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
 
-        .glow-cyan {
-            box-shadow: 0 0 30px -5px rgba(6, 182, 212, 0.3);
-        }
+    .brand-icon {
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    }
 
-        /* Estilos Pirámide */
-        .pyramid-tier {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            clip-path: polygon(var(--tw-polygon));
-            cursor: pointer;
-        }
+    nav {
+      display: flex;
+      gap: 0.35rem;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      max-width: 70%;
+      scrollbar-width: thin;
+      scrollbar-color: var(--card-border) transparent;
+    }
 
-        .pyramid-tier:hover {
-            filter: brightness(1.25);
-            transform: scale(1.02);
-        }
+    .nav-btn {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--text-muted);
+      padding: 0.45rem 0.85rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.25s ease;
+    }
 
-        .pyramid-tier.active {
-            filter: brightness(1.35);
-            box-shadow: 0 0 25px rgba(255, 255, 255, 0.5);
-        }
+    .nav-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
 
-        /* Clips trapezoidales/triangulares para la pirámide */
-        .tier-e2e {
-            clip-path: polygon(50% 0%, 20% 100%, 80% 100%);
-        }
-        .tier-integration {
-            clip-path: polygon(20% 0%, 80% 0%, 90% 100%, 10% 100%);
-        }
-        .tier-unit {
-            clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%);
-        }
+    .nav-btn.active {
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(59, 130, 246, 0.25));
+      border-color: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(168, 85, 247, 0.3);
+    }
 
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(15, 23, 42, 0.6);
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(124, 58, 237, 0.5);
-            border-radius: 4px;
-        }
-    </style>
+    /* MAIN CONTAINER */
+    main {
+      flex: 1;
+      max-width: 1100px;
+      width: 92%;
+      margin: 1.5rem auto 5rem;
+      position: relative;
+    }
+
+    .slide {
+      display: none;
+      animation: fadeIn 0.4s ease forwards;
+    }
+
+    .slide.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* LIQUID GLASS CARD */
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    }
+
+    .slide-header {
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .slide-title {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ffffff, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+
+    .slide-subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    /* GRID LAYOUTS */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    /* FEATURE CARDS */
+    .feature-box {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 14px;
+      padding: 1.25rem;
+      transition: all 0.3s ease;
+    }
+
+    .feature-box:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .feature-icon {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      display: inline-block;
+    }
+
+    .feature-title {
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.25rem;
+      font-size: 1rem;
+    }
+
+    .feature-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* VISUAL PYRAMID */
+    .pyramid-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 1rem 0;
+    }
+
+    .pyramid-tier {
+      width: 100%;
+      text-align: center;
+      padding: 1.2rem;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+    }
+
+    .pyramid-tier.e2e {
+      max-width: 380px;
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.05));
+      border-color: rgba(239, 68, 68, 0.4);
+    }
+
+    .pyramid-tier.integration {
+      max-width: 580px;
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.05));
+      border-color: rgba(245, 158, 11, 0.4);
+    }
+
+    .pyramid-tier.unit {
+      max-width: 780px;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05));
+      border-color: rgba(16, 185, 129, 0.4);
+    }
+
+    .pyramid-tier:hover {
+      transform: scale(1.02);
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+    }
+
+    .tier-name {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .tier-sub {
+      font-size: 0.8rem;
+      opacity: 0.8;
+      margin-top: 2px;
+    }
+
+    /* CODE BOX */
+    .code-box {
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 1rem;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      color: #e2e8f0;
+      overflow-x: auto;
+      margin-top: 1rem;
+    }
+
+    .code-comment { color: #6b7280; }
+    .code-keyword { color: #c084fc; }
+    .code-func { color: #60a5fa; }
+    .code-str { color: #34d399; }
+
+    /* TABLE STYLES */
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--card-border);
+      font-weight: 700;
+    }
+
+    td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text-main);
+    }
+
+    /* QUIZ SECTION */
+    .quiz-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .quiz-q {
+      font-weight: 700;
+      font-size: 1rem;
+      color: #fff;
+      margin-bottom: 1rem;
+    }
+
+    .quiz-opts {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .opt-btn {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      text-align: left;
+      cursor: pointer;
+      font-size: 0.88rem;
+      transition: all 0.2s ease;
+    }
+
+    .opt-btn:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .opt-btn.correct {
+      background: rgba(16, 185, 129, 0.25) !important;
+      border-color: var(--success) !important;
+      color: #fff !important;
+      font-weight: 600;
+    }
+
+    .opt-btn.incorrect {
+      background: rgba(239, 68, 68, 0.25) !important;
+      border-color: var(--error) !important;
+      color: #fff !important;
+    }
+
+    .feedback-box {
+      margin-top: 0.85rem;
+      padding: 0.85rem 1rem;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .feedback-box.show {
+      display: block;
+    }
+
+    .feedback-box.correct {
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #a7f3d0;
+    }
+
+    .feedback-box.incorrect {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+    }
+
+    /* FOOTER CONTROL BAR */
+    footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(5, 5, 8, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid var(--card-border);
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .action-btn {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: #fff;
+      border: none;
+      padding: 0.6rem 1.25rem;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);
+    }
+
+    .action-btn:hover:not(:disabled) {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    .action-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .action-btn.secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: none;
+    }
+
+    .action-btn.secondary:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .slide-counter {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    /* BADGES & EXTRA */
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-unit { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .badge-int { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .badge-e2e { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+    .team-list {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 1.5rem;
+    }
+
+    .team-chip {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 0.35rem 0.85rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      color: var(--text-main);
+    }
+
+    /* FLOW STEPS */
+    .flow-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .flow-step {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+    }
+
+    .step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(168, 85, 247, 0.2);
+      color: var(--primary-bright);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 768px) {
+      header { flex-direction: column; align-items: flex-start; }
+      nav { max-width: 100%; width: 100%; }
+      .slide-title { font-size: 1.5rem; }
+      .glass-card { padding: 1.25rem; }
+    }
+  </style>
 </head>
-<body class="bg-grid-pattern min-h-screen custom-scrollbar selection:bg-purple-500 selection:text-white">
+<body>
 
-    <!-- Header -->
-    <header class="sticky top-0 z-50 glass-panel border-b border-slate-800/80">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap justify-between items-center gap-4">
-            <div class="flex items-center space-x-3">
-                <div class="p-2.5 bg-gradient-to-tr from-purple-600 to-cyan-400 rounded-xl shadow-lg">
-                    <i class="fa-solid fa-layer-group text-white text-xl"></i>
-                </div>
+  <!-- HEADER NAVIGATION -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon"></div>
+      Testing Pyramid
+    </div>
+    <nav id="navbar">
+      <button class="nav-btn active" onclick="goToSlide(0)">Inicio</button>
+      <button class="nav-btn" onclick="goToSlide(1)">Concepto</button>
+      <button class="nav-btn" onclick="goToSlide(2)">La Pirámide</button>
+      <button class="nav-btn" onclick="goToSlide(3)">Unitarias</button>
+      <button class="nav-btn" onclick="goToSlide(4)">Integración</button>
+      <button class="nav-btn" onclick="goToSlide(5)">End-to-End</button>
+      <button class="nav-btn" onclick="goToSlide(6)">Comparativa</button>
+      <button class="nav-btn" onclick="goToSlide(7)">Ventajas</button>
+      <button class="nav-btn" onclick="goToSlide(8)">Caso Práctico</button>
+      <button class="nav-btn" onclick="goToSlide(9)">Cuestionario</button>
+    </nav>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main>
+
+    <!-- SLIDE 1: PORTADA -->
+    <div class="slide active">
+      <div class="glass-card" style="text-align: center; padding: 3.5rem 2rem;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">📐</div>
+        <h1 class="slide-title" style="font-size: 2.75rem;">Pirámide de Pruebas de Software</h1>
+        <p class="slide-subtitle" style="font-size: 1.1rem; max-width: 600px; margin: 0 auto 2rem;">
+          Estrategias, niveles y mejores prácticas para garantizar un software robusto, rápido y mantenible.
+        </p>
+
+        <div style="margin-top: 2rem;">
+          <p style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">
+            Gestión de Proyectos de Software
+          </p>
+          <div class="team-list">
+            <span class="team-chip">👨‍💻 Diego</span>
+            <span class="team-chip">👨‍💻 Cesar</span>
+            <span class="team-chip">👩‍💻 Janeth</span>
+            <span class="team-chip">👨‍💻 Gael</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2: ¿QUÉ ES? -->
+    <div class="slide">
+      <div class="glass-card">
+        <div class="slide-header">
+          <h2 class="slide-title">¿Qué es la Testing Pyramid?</h2>
+          <p class="slide-subtitle">Un modelo conceptual para organizar y optimizar las pruebas de software</p>
+        </div>
+
+        <p style="margin-bottom: 1.5rem; text-align: center; color: var(--text-main); line-height: 1.6;">
+          Es una guía gráfica que muestra cómo estructurar la suite de pruebas buscando un equilibrio óptimo entre **costo**, **velocidad**, **cobertura** y **confiabilidad**.
+        </p>
+
+        <div class="grid-4">
+          <div class="feature-box">
+            <span class="feature-icon">⚡</span>
+            <div class="feature-title">Velocidad</div>
+            <div class="feature-desc">Pruebas ultrarrápidas que entregan retroalimentación inmediata al equipo.</div>
+          </div>
+
+          <div class="feature-box">
+            <span class="feature-icon">💰</span>
+            <div class="feature-title">Costo</div>
+            <div class="feature-desc">Reduce la inversión manteniendo pocas pruebas complejas y costosas.</div>
+          </div>
+
+          <div class="feature-box">
+            <span class="feature-icon">🛡️</span>
+            <div class="feature-title">Cobertura</div>
+            <div class="feature-desc">Verificación integral del sistema en distintas capas de profundidad.</div>
+          </div>
+
+          <div class="feature-box">
+            <span class="feature-icon">🎯</span>
+            <div class="feature-title">Confiabilidad</div>
+            <div class="feature-desc">Garantiza estabilidad antes de liberar cambios a producción.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3: ESTRUCTURA DE LA PIRÁMIDE -->
+    <div class="slide">
+      <div class="glass-card">
+        <div class="slide-header">
+          <h2 class="slide-title">Estructura de la Pirámide</h2>
+          <p class="slide-subtitle">Divide las pruebas en 3 niveles estratégicos. Haz clic en cada nivel para explorar.</p>
+        </div>
+
+        <div class="pyramid-wrapper">
+          <div class="pyramid-tier e2e" onclick="goToSlide(5)">
+            <div class="tier-name">Nivel 3: End-to-End (E2E)</div>
+            <div class="tier-sub">Simulan flujos completos de usuario • Lentas y costosas • Menor cantidad</div>
+          </div>
+
+          <div class="pyramid-tier integration" onclick="goToSlide(4)">
+            <div class="tier-name">Nivel 2: Integración</div>
+            <div class="tier-sub">Verifican interacción entre componentes / servicios • Cantidad moderada</div>
+          </div>
+
+          <div class="pyramid-tier unit" onclick="goToSlide(3)">
+            <div class="tier-name">Nivel 1: Unitarias (Base)</div>
+            <div class="tier-sub">Prueban unidades de código aisladas • Rápidas y económicas • La gran mayoría</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4: PRUEBAS UNITARIAS -->
+    <div class="slide">
+      <div class="glass-card">
+        <div class="slide-header">
+          <span class="badge badge-unit">Nivel 1 - Base</span>
+          <h2 class="slide-title" style="margin-top: 0.5rem;">Pruebas Unitarias</h2>
+          <p class="slide-subtitle">Verifican funciones, métodos o módulos individuales en total aislamiento.</p>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <h3 style="color: #fff; font-size: 1.1rem; margin-bottom: 0.75rem;">Características clave</h3>
+            <ul style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.8; padding-left: 1.2rem;">
+              <li>Ejecución en cuestión de milisegundos.</li>
+              <li>Aíslan dependencias externas (mocks / stubs).</li>
+              <li>Identifican la causa exacta del error al instante.</li>
+              <li>Representan entre el 60% y 70% de todas las pruebas.</li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 style="color: #fff; font-size: 1.1rem; margin-bottom: 0.75rem;">Ejemplo Práctico</h3>
+            <div class="code-box">
+<span class="code-comment">// Cálculo del total con impuestos</span>
+<span class="code-keyword">function</span> <span class="code-func">calcularTotal</span>(monto, impuesto) {
+  <span class="code-keyword">return</span> monto + (monto * impuesto);
+}
+
+<span class="code-comment">// Prueba unitaria</span>
+<span class="code-func">test</span>(<span class="code-str">'Calcula el IVA correctamente'</span>, () => {
+  <span class="code-keyword">const</span> resultado = <span class="code-func">calcularTotal</span>(100, 0.16);
+  <span class="code-func">expect</span>(resultado).<span class="code-func">toBe</span>(116);
+});
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5: PRUEBAS DE INTEGRACIÓN -->
+    <div class="slide">
+      <div class="glass-card">
+        <div class="slide-header">
+          <span class="badge badge-int">Nivel 2 - Medio</span>
+          <h2 class="slide-title" style="margin-top: 0.5rem;">Pruebas de Integración</h2>
+          <p class="slide-subtitle">Validan que los componentes del sistema funcionen correctamente juntos.</p>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <h3 style="color: #fff; font-size: 1.1rem; margin-bottom: 0.75rem;">¿Qué se comprueba?</h3>
+            <ul style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.8; padding-left: 1.2rem;">
+              <li>Comunicación Backend y Base de Datos (SQL / ORM).</li>
+              <li>Consumo de APIs REST / GraphQL externas.</li>
+              <li>Interacción entre servicios o microservicios.</li>
+              <li>Flujos de autenticación e integración middleware.</li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 style="color: #fff; font-size: 1.1rem; margin-bottom: 0.75rem;">Flujo de Comunicación</h3>
+            <div class="flow-steps">
+              <div class="flow-step">
+                <div class="step-num">1</div>
                 <div>
-                    <h1 class="text-xl font-extrabold bg-gradient-to-r from-purple-400 via-fuchsia-300 to-cyan-400 bg-clip-text text-transparent">
-                        Testing Pyramid
-                    </h1>
-                    <p class="text-xs text-slate-400 font-medium">Pirámide de Pruebas de Software</p>
+                  <strong style="color: #fff;">Frontend / cliente</strong>
+                  <div style="font-size: 0.8rem; color: var(--text-muted);">Envía petición con datos de registro.</div>
                 </div>
-            </div>
-
-            <!-- Meta Información -->
-            <div class="flex flex-wrap items-center gap-2 text-xs">
-                <span class="px-3 py-1.5 rounded-full bg-slate-800/80 text-purple-300 border border-purple-500/20 font-medium">
-                    <i class="fa-solid fa-graduation-cap mr-1"></i> Gestión de Proyectos de Software
-                </span>
-                <div class="flex items-center space-x-1 text-slate-300 bg-slate-900/60 px-3 py-1.5 rounded-full border border-slate-800">
-                    <i class="fa-solid fa-users text-cyan-400 mr-1"></i>
-                    <span class="font-semibold text-white">Integrantes:</span>
-                    <span>Diego, Cesar, Janeth, Gael</span>
+              </div>
+              <div class="flow-step">
+                <div class="step-num">2</div>
+                <div>
+                  <strong style="color: #fff;">API / Backend</strong>
+                  <div style="font-size: 0.8rem; color: var(--text-muted);">Procesa la lógica y valida la solicitud.</div>
                 </div>
+              </div>
+              <div class="flow-step">
+                <div class="step-num">3</div>
+                <div>
+                  <strong style="color: #fff;">Base de Datos</strong>
+                  <div style="font-size: 0.8rem; color: var(--text-muted);">Almacena el registro y retorna confirmación.</div>
+                </div>
+              </div>
             </div>
+          </div>
         </div>
-    </header>
+      </div>
+    </div>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-16">
-
-        <!-- Hero Section & Factores Clave -->
-        <section class="space-y-8">
-            <div class="text-center max-w-3xl mx-auto space-y-4">
-                <span class="px-4 py-1.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/30 text-xs font-semibold uppercase tracking-wider">
-                    Estrategia de Calidad de Software
-                </span>
-                <h2 class="text-3xl sm:text-5xl font-black tracking-tight text-white">
-                    ¿Qué es la <span class="bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">Testing Pyramid</span>?
-                </h2>
-                <p class="text-slate-300 text-base sm:text-lg leading-relaxed">
-                    Es un modelo conceptual que organiza y distribuye estratégicamente las pruebas en un proyecto. Busca encontrar el **equilibrio óptimo** entre velocidad, costo, cobertura y confiabilidad antes de lanzar a producción.
-                </p>
-            </div>
-
-            <!-- Factores Clave Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <!-- Velocidad -->
-                <div class="glass-panel p-5 rounded-2xl transition-all duration-300 hover:-translate-y-1 group">
-                    <div class="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-4 group-hover:scale-110 transition-transform">
-                        <i class="fa-solid fa-bolt text-xl"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-white mb-1 flex items-center justify-between">
-                        Velocidad
-                        <span class="text-xs text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800">Inmediata</span>
-                    </h3>
-                    <p class="text-sm text-slate-400 leading-relaxed">
-                        Pruebas rápidas que proporcionan retroalimentación casi instantánea al equipo de desarrollo durante el código.
-                    </p>
-                </div>
-
-                <!-- Costo -->
-                <div class="glass-panel p-5 rounded-2xl transition-all duration-300 hover:-translate-y-1 group">
-                    <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-4 group-hover:scale-110 transition-transform">
-                        <i class="fa-solid fa-sack-dollar text-xl"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-white mb-1 flex items-center justify-between">
-                        Costo
-                        <span class="text-xs text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800">Optimizado</span>
-                    </h3>
-                    <p class="text-sm text-slate-400 leading-relaxed">
-                        Menor inversión económica reduciendo pruebas complejas e invirtiendo en automatizaciones más baratas.
-                    </p>
-                </div>
-
-                <!-- Cobertura -->
-                <div class="glass-panel p-5 rounded-2xl transition-all duration-300 hover:-translate-y-1 group">
-                    <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 mb-4 group-hover:scale-110 transition-transform">
-                        <i class="fa-solid fa-shield-halved text-xl"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-white mb-1 flex items-center justify-between">
-                        Cobertura
-                        <span class="text-xs text-purple-400 bg-purple-950/60 px-2 py-0.5 rounded border border-purple-800">Amplia</span>
-                    </h3>
-                    <p class="text-sm text-slate-400 leading-relaxed">
-                        Verificación exhaustiva del sistema abarcando desde lógica básica hasta componentes complejos.
-                    </p>
-                </div>
-
-                <!-- Confiabilidad -->
-                <div class="glass-panel p-5 rounded-2xl transition-all duration-300 hover:-translate-y-1 group">
-                    <div class="w-12 h-12 rounded-xl bg-fuchsia-500/10 border border-fuchsia-500/30 flex items-center justify-center text-fuchsia-400 mb-4 group-hover:scale-110 transition-transform">
-                        <i class="fa-solid fa-circle-check text-xl"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-white mb-1 flex items-center justify-between">
-                        Confiabilidad
-                        <span class="text-xs text-fuchsia-400 bg-fuchsia-950/60 px-2 py-0.5 rounded border border-fuchsia-800">Alta</span>
-                    </h3>
-                    <p class="text-sm text-slate-400 leading-relaxed">
-                        Garantiza un software estable, robusto y predecible antes de llegar a los usuarios finales.
-                    </p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Pirámide Interactiva -->
-        <section class="space-y-6">
-            <div class="text-center space-y-2">
-                <h2 class="text-2xl sm:text-3xl font-extrabold text-white">Estructura Interactivas de la Pirámide</h2>
-                <p class="text-slate-400 text-sm">Haz clic en cualquier nivel de la pirámide para explorar sus características y ejemplos prácticos.</p>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-                <!-- Visualizador de Pirámide (Gráfico) -->
-                <div class="lg:col-span-5 flex flex-col items-center justify-center p-6 glass-panel rounded-3xl relative overflow-hidden">
-                    <div class="absolute inset-0 bg-gradient-to-b from-purple-500/5 to-transparent pointer-events-none"></div>
-
-                    <div class="w-full max-w-sm flex flex-col items-center space-y-2 py-4 relative z-10">
-                        
-                        <!-- Tier E2E -->
-                        <div id="btn-e2e" onclick="selectTier('e2e')" 
-                             class="pyramid-tier tier-e2e w-full h-24 bg-gradient-to-r from-rose-600 to-pink-500 flex flex-col items-center justify-center text-white shadow-lg transition-all">
-                            <span class="font-black text-xs sm:text-sm tracking-wider uppercase">Nivel 3: End-to-End</span>
-                            <span class="text-[10px] opacity-90 font-medium">Lentas & Costosas</span>
-                        </div>
-
-                        <!-- Tier Integración -->
-                        <div id="btn-integration" onclick="selectTier('integration')" 
-                             class="pyramid-tier tier-integration w-full h-24 bg-gradient-to-r from-amber-500 to-yellow-500 flex flex-col items-center justify-center text-slate-950 shadow-lg transition-all">
-                            <span class="font-black text-xs sm:text-sm tracking-wider uppercase">Nivel 2: Integración</span>
-                            <span class="text-[10px] font-bold opacity-90">Comunicación de Módulos</span>
-                        </div>
-
-                        <!-- Tier Unitarias -->
-                        <div id="btn-unit" onclick="selectTier('unit')" 
-                             class="pyramid-tier tier-unit w-full h-24 bg-gradient-to-r from-emerald-500 to-teal-400 flex flex-col items-center justify-center text-slate-950 shadow-lg transition-all active">
-                            <span class="font-black text-xs sm:text-sm tracking-wider uppercase">Nivel 1: Unitarias</span>
-                            <span class="text-[10px] font-bold opacity-90">Rápidas, Aisladas & Numerosas</span>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between w-full mt-4 text-xs font-semibold text-slate-400 px-2 border-t border-slate-800 pt-3">
-                        <span class="text-emerald-400"><i class="fa-solid fa-arrow-down mr-1"></i> Mayor Cantidad / Menor Costo</span>
-                        <span class="text-rose-400"><i class="fa-solid fa-arrow-up mr-1"></i> Mayor Tiempo / Costo</span>
-                    </div>
-                </div>
-
-                <!-- Detalle del Nivel Seleccionado -->
-                <div class="lg:col-span-7 glass-panel p-6 sm:p-8 rounded-3xl relative overflow-hidden min-h-[420px] flex flex-col justify-between border-l-4" id="tier-detail-card">
-                    <div id="tier-content" class="space-y-6">
-                        <!-- Se llena mediante Javascript dinámicamente -->
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Tabla Comparativa -->
-        <section class="space-y-6">
-            <div class="text-center space-y-2">
-                <h2 class="text-2xl sm:text-3xl font-extrabold text-white">Comparativa entre Niveles</h2>
-                <p class="text-slate-400 text-sm">Resumen de atributos clave para diseñar una estrategia de QA balanceada</p>
-            </div>
-
-            <div class="glass-panel rounded-2xl overflow-hidden border border-slate-800">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
-                        <thead class="bg-slate-900/80 text-xs uppercase tracking-wider text-slate-400 border-b border-slate-800">
-                            <tr>
-                                <th class="p-4 font-bold">Característica</th>
-                                <th class="p-4 font-bold text-emerald-400"><i class="fa-solid fa-cube mr-1.5"></i> Unitarias</th>
-                                <th class="p-4 font-bold text-amber-400"><i class="fa-solid fa-cubes mr-1.5"></i> Integración</th>
-                                <th class="p-4 font-bold text-rose-400"><i class="fa-solid fa-diagram-project mr-1.5"></i> End-to-End (E2E)</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-800/60 text-slate-300 font-medium">
-                            <tr class="hover:bg-slate-800/30 transition-colors">
-                                <td class="p-4 font-semibold text-white">Alcance</td>
-                                <td class="p-4 text-emerald-300">Pequeño (Aislado)</td>
-                                <td class="p-4 text-amber-300">Medio (Múltiples Módulos)</td>
-                                <td class="p-4 text-rose-300">Completo (Sistema Total)</td>
-                            </tr>
-                            <tr class="hover:bg-slate-800/30 transition-colors">
-                                <td class="p-4 font-semibold text-white">Velocidad</td>
-                                <td class="p-4"><span class="px-2.5 py-1 rounded bg-emerald-950/60 text-emerald-400 border border-emerald-800 text-xs">Muy rápida (ms)</span></td>
-                                <td class="p-4"><span class="px-2.5 py-1 rounded bg-amber-950/60 text-amber-400 border border-amber-800 text-xs">Media (segundos)</span></td>
-                                <td class="p-4"><span class="px-2.5 py-1 rounded bg-rose-950/60 text-rose-400 border border-rose-800 text-xs">Lenta (minutos)</span></td>
-                            </tr>
-                            <tr class="hover:bg-slate-800/30 transition-colors">
-                                <td class="p-4 font-semibold text-white">Costo de Ejecución / Creación</td>
-                                <td class="p-4 text-emerald-300">Bajo</td>
-                                <td class="p-4 text-amber-300">Medio</td>
-                                <td class="p-4 text-rose-300">Alto</td>
-                            </tr>
-                            <tr class="hover:bg-slate-800/30 transition-colors">
-                                <td class="p-4 font-semibold text-white">Mantenimiento</td>
-                                <td class="p-4 text-emerald-300">Fácil y directo</td>
-                                <td class="p-4 text-amber-300">Moderado</td>
-                                <td class="p-4 text-rose-300">Complejo / Fragilidad mayor</td>
-                            </tr>
-                            <tr class="hover:bg-slate-800/30 transition-colors">
-                                <td class="p-4 font-semibold text-white">Cantidad Recomendada</td>
-                                <td class="p-4 text-emerald-400 font-bold">Muchas (Base de la pirámide)</td>
-                                <td class="p-4 text-amber-400 font-bold">Algunas (Capa intermedia)</td>
-                                <td class="p-4 text-rose-400 font-bold">Pocas (Sólo flujos clave)</td>
-                            </tr>
-                            <tr class="hover:bg-slate-800/30 transition-colors">
-                                <td class="p-4 font-semibold text-white">Simula Usuario Real</td>
-                                <td class="p-4 text-slate-500">No</td>
-                                <td class="p-4 text-amber-300">Parcialmente</td>
-                                <td class="p-4 text-rose-400 font-bold"><i class="fa-solid fa-check text-emerald-400 mr-1"></i> Sí (100%)</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- Ventajas Principales & Ejemplo Práctico -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <!-- Ventajas -->
-            <section class="space-y-4">
-                <h2 class="text-2xl font-bold text-white flex items-center">
-                    <i class="fa-solid fa-award text-purple-400 mr-3"></i> Ventajas de la Pirámide
-                </h2>
-                <div class="space-y-3">
-                    <div class="glass-panel p-4 rounded-xl flex items-start space-x-3">
-                        <div class="p-2 bg-purple-500/10 text-purple-400 rounded-lg shrink-0 mt-0.5">
-                            <i class="fa-solid fa-bug"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-white text-sm">Detección Temprana de Errores</h4>
-                            <p class="text-xs text-slate-400 mt-1">Los errores se atrapan en desarrollo antes de llegar a entornos de prueba o producción, abaratando exponencialmente el costo de corrección.</p>
-                        </div>
-                    </div>
-
-                    <div class="glass-panel p-4 rounded-xl flex items-start space-x-3">
-                        <div class="p-2 bg-cyan-500/10 text-cyan-400 rounded-lg shrink-0 mt-0.5">
-                            <i class="fa-solid fa-gauge-high"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-white text-sm">Menor Tiempo de Ejecución</h4>
-                            <p class="text-xs text-slate-400 mt-1">Al concentrar la mayoría del volumen en pruebas unitarias ultrarrápidas, el pipeline de integración continua (CI/CD) responde en minutos.</p>
-                        </div>
-                    </div>
-
-                    <div class="glass-panel p-4 rounded-xl flex items-start space-x-3">
-                        <div class="p-2 bg-emerald-500/10 text-emerald-400 rounded-lg shrink-0 mt-0.5">
-                            <i class="fa-solid fa-piggy-bank"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-white text-sm">Reducción Significativa de Costos</h4>
-                            <p class="text-xs text-slate-400 mt-1">Se optimizan recursos al no depender excesivamente de pruebas manuales exhaustivas o entornos costosos de End-to-End.</p>
-                        </div>
-                    </div>
-
-                    <div class="glass-panel p-4 rounded-xl flex items-start space-x-3">
-                        <div class="p-2 bg-fuchsia-500/10 text-fuchsia-400 rounded-lg shrink-0 mt-0.5">
-                            <i class="fa-solid fa-wrench"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-white text-sm">Mantenimiento Simplificado</h4>
-                            <p class="text-xs text-slate-400 mt-1">Cuando una función cambia, sólo se actualiza la prueba unitaria correspondiente sin romper decenas de flujos complejos.</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Caso Práctico E-Commerce -->
-            <section class="space-y-4">
-                <h2 class="text-2xl font-bold text-white flex items-center">
-                    <i class="fa-solid fa-cart-shopping text-cyan-400 mr-3"></i> Caso Práctico: E-Commerce
-                </h2>
-                <p class="text-xs text-slate-400">Cómo se aplica la Pirámide de Pruebas en una tienda en línea real:</p>
-
-                <div class="space-y-3">
-                    <!-- Acordeón Unitarias -->
-                    <div class="glass-panel rounded-xl overflow-hidden border border-slate-800">
-                        <div class="p-4 bg-emerald-950/20 flex justify-between items-center cursor-pointer border-b border-slate-800" onclick="toggleAccordion('acc-unit')">
-                            <span class="font-bold text-sm text-emerald-400 flex items-center">
-                                <i class="fa-solid fa-cube mr-2"></i> Pruebas Unitarias
-                            </span>
-                            <i class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform" id="acc-unit-icon"></i>
-                        </div>
-                        <div id="acc-unit" class="p-4 text-xs text-slate-300 space-y-2">
-                            <p class="text-slate-400">Verificación aislada de métodos de cálculo y validadores:</p>
-                            <ul class="list-disc list-inside space-y-1 font-mono text-emerald-300">
-                                <li>Calcular precios totales e IVA</li>
-                                <li>Aplicar cupón de descuento (-15%)</li>
-                                <li>Validar formato de contraseña o correo</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <!-- Acordeón Integración -->
-                    <div class="glass-panel rounded-xl overflow-hidden border border-slate-800">
-                        <div class="p-4 bg-amber-950/20 flex justify-between items-center cursor-pointer border-b border-slate-800" onclick="toggleAccordion('acc-int')">
-                            <span class="font-bold text-sm text-amber-400 flex items-center">
-                                <i class="fa-solid fa-cubes mr-2"></i> Pruebas de Integración
-                            </span>
-                            <i class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform" id="acc-int-icon"></i>
-                        </div>
-                        <div id="acc-int" class="p-4 text-xs text-slate-300 space-y-2">
-                            <p class="text-slate-400">Conexión y comunicación entre subsistemas:</p>
-                            <ul class="list-disc list-inside space-y-1 font-mono text-amber-300">
-                                <li>Módulo Login + Base de Datos (SQL/NoSQL)</li>
-                                <li>Carrito de compras + Inventario/Catálogo</li>
-                                <li>Procesador de Pagos + API externa de Stripe/PayPal</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <!-- Acordeón E2E -->
-                    <div class="glass-panel rounded-xl overflow-hidden border border-slate-800">
-                        <div class="p-4 bg-rose-950/20 flex justify-between items-center cursor-pointer border-b border-slate-800" onclick="toggleAccordion('acc-e2e')">
-                            <span class="font-bold text-sm text-rose-400 flex items-center">
-                                <i class="fa-solid fa-diagram-project mr-2"></i> Pruebas End-to-End (E2E)
-                            </span>
-                            <i class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform" id="acc-e2e-icon"></i>
-                        </div>
-                        <div id="acc-e2e" class="p-4 text-xs text-slate-300 space-y-2">
-                            <p class="text-slate-400">Simulación completa del flujo de un cliente en navegador:</p>
-                            <div class="flex items-center space-x-1 text-[11px] font-mono bg-slate-900 p-2.5 rounded border border-slate-800 overflow-x-auto text-rose-300">
-                                <span>1. Login</span> &rarr; 
-                                <span>2. Buscar producto</span> &rarr; 
-                                <span>3. Agregar al Carrito</span> &rarr; 
-                                <span>4. Checkout & Pago</span> &rarr; 
-                                <span>5. Confirmación</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+    <!-- SLIDE 6: PRUEBAS END-TO-END -->
+    <div class="slide">
+      <div class="glass-card">
+        <div class="slide-header">
+          <span class="badge badge-e2e">Nivel 3 - Cima</span>
+          <h2 class="slide-title" style="margin-top: 0.5rem;">Pruebas End-to-End (E2E)</h2>
+          <p class="slide-subtitle">Simulan el comportamiento real del usuario de principio a fin.</p>
         </div>
 
-        <!-- Cuestionario Interactivo -->
-        <section class="space-y-8 pt-6 border-t border-slate-800">
-            <div class="text-center max-w-2xl mx-auto space-y-2">
-                <span class="px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 text-xs font-bold uppercase tracking-wider">Evaluación Práctica</span>
-                <h2 class="text-2xl sm:text-4xl font-black text-white">Cuestionario de Aprendizaje</h2>
-                <p class="text-slate-400 text-sm">Responde las siguientes 5 preguntas basadas en la presentación para poner a prueba tus conocimientos.</p>
+        <div class="grid-2">
+          <div>
+            <h3 style="color: #fff; font-size: 1.1rem; margin-bottom: 0.75rem;">Características</h3>
+            <ul style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.8; padding-left: 1.2rem;">
+              <li>Prueban la interfaz gráfica (UI), servidor y base de datos en conjunto.</li>
+              <li>Son más lentas de ejecutar y frágiles ante cambios visuales.</li>
+              <li>Brindan la máxima seguridad sobre el valor entregado al usuario.</li>
+              <li>Deben limitarse a los flujos críticos del negocio.</li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 style="color: #fff; font-size: 1.1rem; margin-bottom: 0.75rem;">Flujo Típico E2E</h3>
+            <div class="flow-steps">
+              <div class="flow-step"><div class="step-num">1</div><span style="color:#fff; font-size:0.85rem;">Iniciar sesión con credenciales.</span></div>
+              <div class="flow-step"><div class="step-num">2</div><span style="color:#fff; font-size:0.85rem;">Navegar al panel o dashboard.</span></div>
+              <div class="flow-step"><div class="step-num">3</div><span style="color:#fff; font-size:0.85rem;">Crear un nuevo elemento / nota.</span></div>
+              <div class="flow-step"><div class="step-num">4</div><span style="color:#fff; font-size:0.85rem;">Guardar y verificar mensaje de éxito.</span></div>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-            <div class="max-w-4xl mx-auto space-y-6" id="quiz-container">
-                <!-- Las 5 preguntas se inyectan vía JavaScript -->
-            </div>
-        </section>
+    <!-- SLIDE 7: TABLA COMPARATIVA -->
+    <div class="slide">
+      <div class="glass-card">
+        <div class="slide-header">
+          <h2 class="slide-title">Comparación de Niveles</h2>
+          <p class="slide-subtitle">Resumen de las métricas clave en cada estrato de la pirámide</p>
+        </div>
 
-    </main>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Característica</th>
+                <th>Unitarias</th>
+                <th>Integración</th>
+                <th>End-to-End (E2E)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Alcance</strong></td>
+                <td>Pequeño (Componente/Función)</td>
+                <td>Medio (Módulos conectados)</td>
+                <td>Completo (Sistema entero)</td>
+              </tr>
+              <tr>
+                <td><strong>Velocidad</strong></td>
+                <td><span style="color: var(--unit-color);">⚡ Muy rápida</span></td>
+                <td><span style="color: var(--int-color);">⏳ Media</span></td>
+                <td><span style="color: var(--e2e-color);">🐢 Lenta</span></td>
+              </tr>
+              <tr>
+                <td><strong>Costo</strong></td>
+                <td>Bajo</td>
+                <td>Medio</td>
+                <td>Alto</td>
+              </tr>
+              <tr>
+                <td><strong>Mantenimiento</strong></td>
+                <td>Sencillo</td>
+                <td>Moderado</td>
+                <td>Complejo / Exigente</td>
+              </tr>
+              <tr>
+                <td><strong>Proporción</strong></td>
+                <td>70%</td>
+                <td>20%</td>
+                <td>10%</td>
+              </tr>
+              <tr>
+                <td><strong>Simulación Usuario</strong></td>
+                <td>No</td>
+                <td>Parcial</td>
+                <td>Sí (Real)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
 
-    <!-- Footer -->
-    <footer class="border-t border-slate-800/80 bg-slate-950 py-8 text-center text-xs text-slate-500">
-        <p>Testing Pyramid App • Creado para la materia de <span class="text-slate-400 font-medium">Gestión de Proyectos de Software</span></p>
-        <p class="mt-1">Autores: Diego, Cesar, Janeth, Gael</p>
-    </footer>
+    <!-- SLIDE 8: VENTAJAS DE IMPLEMENTACIÓN -->
+    <div class="slide">
+      <div class="glass-card">
+        <div class="slide-header">
+          <h2 class="slide-title">Ventajas de la Pirámide</h2>
+          <p class="slide-subtitle">Por qué adoptar esta estrategia impulsa la entrega de valor</p>
+        </div>
 
-    <script>
-        // Datos de la Pirámide
-        const pyramidData = {
-            unit: {
-                title: "Nivel 1: Pruebas Unitarias",
-                subtitle: "La Base de Toda Estrategia de Calidad",
-                badge: "Base de la Pirámide",
-                badgeColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
-                borderColor: "border-emerald-500",
-                description: "Las pruebas unitarias verifican que una función, método o componente pequeño funcione correctamente de forma individual e independiente, sin conectarse a bases de datos o redes externas.",
-                features: [
-                    "Son sumamente rápidas de ejecutar (milisegundos).",
-                    "Detectan errores específicos con precisión exacta del código.",
-                    "Fáciles de escribir y mantener.",
-                    "Deben representar la mayor proporción del total de pruebas."
-                ],
-                exampleTitle: "Ejemplo de Código Unitaria:",
-                exampleCode: `// Función aislada para calcular total con impuesto\nfunction calcularTotal(subtotal, impuesto) {\n  return subtotal + (subtotal * impuesto);\n}\n\n// Prueba Unitaria:\ntest('Calcula correctamente el total con 16% de IVA', () => {\n  expect(calcularTotal(100, 0.16)).toBe(116);\n});`
-            },
-            integration: {
-                title: "Nivel 2: Pruebas de Integración",
-                subtitle: "Conectando Componentes y Servicios",
-                badge: "Nivel Intermedio",
-                badgeColor: "bg-amber-500/10 text-amber-400 border-amber-500/30",
-                borderColor: "border-amber-500",
-                description: "Comprueban que dos o más módulos o servicios funcionen correctamente al comunicarse entre sí. Validan contratos de API, interacción con bases de datos y servicios de terceros.",
-                features: [
-                    "Validan el flujo de datos entre componentes.",
-                    "Detectan fallos de protocolo, esquemas de BD o APIs desalineadas.",
-                    "Tardan un poco más de tiempo que las unitarias.",
-                    "Requieren un entorno controlado de pruebas."
-                ],
-                exampleTitle: "Ejemplo de Flujo de Integración:",
-                exampleCode: `// Flujo comprobado:\n[ Frontend (Formulario) ] \n      ↓ (Envia JSON mediante POST /api/usuarios)\n[ API Backend (Servidor Node/Python) ] \n      ↓ (Valida e inserta consulta SQL)\n[ Base de Datos (MySQL / MongoDB) ]\n\n// Resultado: La prueba verifica que el registro exista en BD`
-            },
-            e2e: {
-                title: "Nivel 3: Pruebas End-to-End (E2E)",
-                subtitle: "Simulación Completa del Usuario Real",
-                badge: "Cima de la Pirámide",
-                badgeColor: "bg-rose-500/10 text-rose-400 border-rose-500/30",
-                borderColor: "border-rose-500",
-                description: "Comprueban el funcionamiento de la aplicación de principio a fin, simulando el comportamiento exacto de un usuario real dentro de una interfaz de usuario en un entorno lo más cercano a producción.",
-                features: [
-                    "Ofrecen la mayor confianza sobre el comportamiento real.",
-                    "Son las más lentas de ejecutar y más costosas de mantener.",
-                    "Propensas a falsos positivos por cambios menores en UI.",
-                    "Deben ser pocas y concentradas solo en flujos críticos."
-                ],
-                exampleTitle: "Ejemplo de Flujo E2E (Cypress / Playwright):",
-                exampleCode: `// Flujo completo de usuario:\n1. cy.visit('https://mitienda.com/login')\n2. cy.get('#email').type('usuario@test.com')\n3. cy.get('#password').type('123456')\n4. cy.get('#btn-login').click()\n5. cy.get('.cart-btn').click()\n6. cy.contains('¡Compra realizada con éxito!')`
-            }
-        };
+        <div class="grid-2">
+          <div class="feature-box">
+            <div class="feature-title" style="color: var(--primary-bright);">🔍 Detección Temprana de Fallos</div>
+            <div class="feature-desc">Atrapar errores en pruebas unitarias cuesta una fracción que resolver un bug reportado en producción.</div>
+          </div>
 
-        // Función para cambiar de nivel en la pirámide
-        function selectTier(tierKey) {
-            const data = pyramidData[tierKey];
-            const card = document.getElementById('tier-detail-card');
-            const content = document.getElementById('tier-content');
+          <div class="feature-box">
+            <div class="feature-title" style="color: var(--primary-bright);">⚡ Feedback Continuo y Rápido</div>
+            <div class="feature-desc">Los desarrolladores pueden ejecutar miles de pruebas unitarias en sus máquinas locales en segundos.</div>
+          </div>
 
-            // Actualizar botones activos
-            document.querySelectorAll('.pyramid-tier').forEach(el => el.classList.remove('active', 'ring-2', 'ring-white'));
-            document.getElementById(`btn-${tierKey}`).classList.add('active', 'ring-2', 'ring-white');
+          <div class="feature-box">
+            <div class="feature-title" style="color: var(--primary-bright);">💵 Optimización del Presupuesto</div>
+            <div class="feature-desc">Al mantener pocas pruebas E2E, se reducen horas de mantenimiento e infraestructura pesada de pruebas.</div>
+          </div>
 
-            // Actualizar borde de la tarjeta
-            card.className = `lg:col-span-7 glass-panel p-6 sm:p-8 rounded-3xl relative overflow-hidden min-h-[420px] flex flex-col justify-between border-l-4 ${data.borderColor} transition-all duration-300`;
+          <div class="feature-box">
+            <div class="feature-title" style="color: var(--primary-bright);">🛠️ Refactorización Segura</div>
+            <div class="feature-desc">Permite reestructurar el código interno con la garantía de que nada se ha roto si la suite pasa.</div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-            content.innerHTML = `
-                <div class="space-y-4">
-                    <div class="flex flex-wrap justify-between items-start gap-2">
-                        <div>
-                            <span class="px-2.5 py-1 rounded-md text-xs font-bold border ${data.badgeColor}">${data.badge}</span>
-                            <h3 class="text-2xl font-bold text-white mt-2">${data.title}</h3>
-                            <p class="text-xs text-slate-400">${data.subtitle}</p>
-                        </div>
-                    </div>
+    <!-- SLIDE 9: EJEMPLO E-COMMERCE -->
+    <div class="slide">
+      <div class="glass-card">
+        <div class="slide-header">
+          <h2 class="slide-title">Caso Práctico: E-Commerce</h2>
+          <p class="slide-subtitle">Aplicación de los 3 niveles en una tienda en línea real</p>
+        </div>
 
-                    <p class="text-sm text-slate-300 leading-relaxed">${data.description}</p>
+        <div class="grid-3">
+          <div class="feature-box" style="border-top: 3px solid var(--unit-color);">
+            <span class="badge badge-unit">Unitarias</span>
+            <div class="feature-title" style="margin-top: 0.5rem;">Cálculos Aislados</div>
+            <ul style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; padding-left: 1rem;">
+              <li>Calcular subtotal y aplicar cupón de descuento.</li>
+              <li>Validar patrón de formato de email/password.</li>
+              <li>Formatear precios a moneda local.</li>
+            </ul>
+          </div>
 
-                    <div class="space-y-2">
-                        <h4 class="text-xs uppercase font-bold text-slate-400 tracking-wider">Características Clave:</h4>
-                        <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-300">
-                            ${data.features.map(f => `<li class="flex items-start space-x-2"><i class="fa-solid fa-check text-purple-400 mt-0.5"></i><span>${f}</span></li>`).join('')}
-                        </ul>
-                    </div>
-                </div>
+          <div class="feature-box" style="border-top: 3px solid var(--int-color);">
+            <span class="badge badge-int">Integración</span>
+            <div class="feature-title" style="margin-top: 0.5rem;">Servicios Conectados</div>
+            <ul style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; padding-left: 1rem;">
+              <li>Servicio de Login + Base de Datos de Usuarios.</li>
+              <li>Carrito + API de inventario de almacén.</li>
+              <li>Procesamiento de pago + Pasarela (Stripe/PayPal).</li>
+            </ul>
+          </div>
 
-                <div class="mt-4 pt-4 border-t border-slate-800">
-                    <h4 class="text-xs font-bold text-slate-300 mb-2 flex items-center">
-                        <i class="fa-solid fa-code mr-2 text-cyan-400"></i> ${data.exampleTitle}
-                    </h4>
-                    <pre class="bg-slate-950 p-3.5 rounded-xl text-xs font-mono text-cyan-300 border border-slate-800/80 overflow-x-auto">${data.exampleCode}</pre>
-                </div>
-            `;
+          <div class="feature-box" style="border-top: 3px solid var(--e2e-color);">
+            <span class="badge badge-e2e">End-to-End</span>
+            <div class="feature-title" style="margin-top: 0.5rem;">Flujo Completo</div>
+            <ul style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; padding-left: 1rem;">
+              <li>Usuario inicia sesión.</li>
+              <li>Busca producto y lo agrega al carrito.</li>
+              <li>Paga y recibe correo de confirmación.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 10: CUESTIONARIO INTERACTIVO -->
+    <div class="slide">
+      <div class="glass-card">
+        <div class="slide-header">
+          <h2 class="slide-title">Cuestionario de Evaluación</h2>
+          <p class="slide-subtitle">Demuestra lo aprendido seleccionando la opción correcta en cada pregunta.</p>
+        </div>
+
+        <!-- Pregunta 1 -->
+        <div class="quiz-card" id="q1">
+          <div class="quiz-q">1. ¿Qué nivel de la pirámide debe componer la gran mayoría de tus pruebas?</div>
+          <div class="quiz-opts">
+            <button class="opt-btn" onclick="checkAnswer(1, 0, false)">Pruebas End-to-End (E2E)</button>
+            <button class="opt-btn" onclick="checkAnswer(1, 1, false)">Pruebas de Integración</button>
+            <button class="opt-btn" onclick="checkAnswer(1, 2, true)">Pruebas Unitarias</button>
+            <button class="opt-btn" onclick="checkAnswer(1, 3, false)">Pruebas Manuales</button>
+          </div>
+          <div class="feedback-box" id="fb-1"></div>
+        </div>
+
+        <!-- Pregunta 2 -->
+        <div class="quiz-card" id="q2">
+          <div class="quiz-q">2. ¿Cuál es la principal ventaja de las pruebas unitarias?</div>
+          <div class="quiz-opts">
+            <button class="opt-btn" onclick="checkAnswer(2, 0, false)">Prueban la interfaz completa con la base de datos.</button>
+            <button class="opt-btn" onclick="checkAnswer(2, 1, true)">Son extremadamente rápidas y fáciles de aislar/depurar.</button>
+            <button class="opt-btn" onclick="checkAnswer(2, 2, false)">Garantizan que los servicios web de terceros funcionen bien.</button>
+            <button class="opt-btn" onclick="checkAnswer(2, 3, false)">Sustituyen la necesidad de documentación.</button>
+          </div>
+          <div class="feedback-box" id="fb-2"></div>
+        </div>
+
+        <!-- Pregunta 3 -->
+        <div class="quiz-card" id="q3">
+          <div class="quiz-q">3. ¿Qué verifican específicamente las pruebas de integración?</div>
+          <div class="quiz-opts">
+            <button class="opt-btn" onclick="checkAnswer(3, 0, true)">La comunicación y flujo de datos entre dos o más componentes.</button>
+            <button class="opt-btn" onclick="checkAnswer(3, 1, false)">Unicamente la lógica interna de un solo método.</button>
+            <button class="opt-btn" onclick="checkAnswer(3, 2, false)">La velocidad de carga visual de los botones.</button>
+            <button class="opt-btn" onclick="checkAnswer(3, 3, false)">La usabilidad para usuarios con discapacidad.</button>
+          </div>
+          <div class="feedback-box" id="fb-3"></div>
+        </div>
+
+        <!-- Pregunta 4 -->
+        <div class="quiz-card" id="q4">
+          <div class="quiz-q">4. ¿Por qué las pruebas End-to-End (E2E) deben ser las menos numerosas?</div>
+          <div class="quiz-opts">
+            <button class="opt-btn" onclick="checkAnswer(4, 0, false)">Porque no aportan valor al proyecto.</button>
+            <button class="opt-btn" onclick="checkAnswer(4, 1, false)">Porque son gratuitas pero difíciles de programar.</button>
+            <button class="opt-btn" onclick="checkAnswer(4, 2, true)">Son más lentas, costosas y frágiles ante cambios en el sistema.</button>
+            <button class="opt-btn" onclick="checkAnswer(4, 3, false)">Porque solo sirven en bases de datos relacionales.</button>
+          </div>
+          <div class="feedback-box" id="fb-4"></div>
+        </div>
+
+        <!-- Pregunta 5 -->
+        <div class="quiz-card" id="q5">
+          <div class="quiz-q">5. En el ejemplo de E-Commerce, ¿qué tipo de prueba sería "Calcular el subtotal con descuento"?</div>
+          <div class="quiz-opts">
+            <button class="opt-btn" onclick="checkAnswer(5, 0, true)">Prueba Unitaria</button>
+            <button class="opt-btn" onclick="checkAnswer(5, 1, false)">Prueba de Integración</button>
+            <button class="opt-btn" onclick="checkAnswer(5, 2, false)">Prueba End-to-End</button>
+            <button class="opt-btn" onclick="checkAnswer(5, 3, false)">Prueba de Rendimiento</button>
+          </div>
+          <div class="feedback-box" id="fb-5"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER CONTROL BAR -->
+  <footer>
+    <button class="action-btn secondary" id="prevBtn" onclick="changeSlide(-1)">← Anterior</button>
+    <div class="slide-counter" id="slideCounter">Diapositiva 1 de 10</div>
+    <button class="action-btn" id="nextBtn" onclick="changeSlide(1)">Siguiente →</button>
+  </footer>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const navButtons = document.querySelectorAll('.nav-btn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const slideCounter = document.getElementById('slideCounter');
+
+    // Retroalimentación explicativa para el cuestionario
+    const feedbackData = {
+      1: {
+        correct: "¡Correcto! Las pruebas unitarias deben ser la base (60-70%) de la pirámide por su velocidad y bajo costo.",
+        incorrect: "Incorrecto. Las pruebas unitarias forman la base de la pirámide debido a su ejecución inmediata y bajo costo de mantenimiento."
+      },
+      2: {
+        correct: "¡Correcto! Se ejecutan en milisegundos y permiten identificar exactamente la línea de código donde ocurrió el fallo.",
+        incorrect: "Incorrecto. Su mayor fortaleza radica en que se ejecutan en milisegundos y aíslan dependencias para encontrar fallos específicos."
+      },
+      3: {
+        correct: "¡Correcto! Comprueban que la API, la Base de Datos y los módulos externos se comuniquen adecuadamente.",
+        incorrect: "Incorrecto. Las pruebas de integración evalúan el intercambio de datos e interacción entre múltiples módulos o servicios."
+      },
+      4: {
+        correct: "¡Correcto! Son las más lentas de ejecutar y requieren más mantenimiento, por lo que se reservan para flujos críticos del usuario.",
+        incorrect: "Incorrecto. Son las más lentas y frágiles, por lo que deben reservarse estratégicamente para los flujos principales."
+      },
+      5: {
+        correct: "¡Correcto! Es una lógica matemática pura que no necesita base de datos ni interfaz gráfica para ser probada.",
+        incorrect: "Incorrecto. Calcular un importe es una función pura que se valida individualmente con una Prueba Unitaria."
+      }
+    };
+
+    function updateSlides() {
+      slides.forEach((slide, index) => {
+        slide.classList.toggle('active', index === currentSlide);
+      });
+
+      navButtons.forEach((btn, index) => {
+        btn.classList.toggle('active', index === currentSlide);
+      });
+
+      prevBtn.disabled = currentSlide === 0;
+      nextBtn.disabled = currentSlide === slides.length - 1;
+
+      slideCounter.textContent = `Diapositiva ${currentSlide + 1} de ${slides.length}`;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function changeSlide(direction) {
+      const newSlide = currentSlide + direction;
+      if (newSlide >= 0 && newSlide < slides.length) {
+        currentSlide = newSlide;
+        updateSlides();
+      }
+    }
+
+    function goToSlide(index) {
+      if (index >= 0 && index < slides.length) {
+        currentSlide = index;
+        updateSlides();
+      }
+    }
+
+    function checkAnswer(qNum, optIdx, isCorrect) {
+      const card = document.getElementById(`q${qNum}`);
+      const buttons = card.querySelectorAll('.opt-btn');
+      const fbBox = document.getElementById(`fb-${qNum}`);
+
+      // Deshabilitar botones para evitar múltiples selecciones
+      buttons.forEach((btn, idx) => {
+        btn.disabled = true;
+        if (idx === optIdx) {
+          btn.classList.add(isCorrect ? 'correct' : 'incorrect');
         }
+      });
 
-        // Acordeón Toggle
-        function toggleAccordion(id) {
-            const el = document.getElementById(id);
-            const icon = document.getElementById(`${id}-icon`);
-            if (el.classList.contains('hidden')) {
-                el.classList.remove('hidden');
-                icon.style.transform = 'rotate(180deg)';
-            } else {
-                el.classList.add('hidden');
-                icon.style.transform = 'rotate(0deg)';
-            }
-        }
+      // Mostrar retroalimentación explicativa
+      fbBox.className = `feedback-box show ${isCorrect ? 'correct' : 'incorrect'}`;
+      fbBox.textContent = isCorrect ? feedbackData[qNum].correct : feedbackData[qNum].incorrect;
+    }
 
-        // Cuestionario Datos
-        const quizQuestions = [
-            {
-                id: 1,
-                question: "¿Cuál es el nivel que debe representar la mayor cantidad de pruebas en la Testing Pyramid?",
-                options: [
-                    "Pruebas End-to-End (E2E)",
-                    "Pruebas Unitarias",
-                    "Pruebas de Integración",
-                    "Pruebas Manuales de Aceptación"
-                ],
-                correct: 1,
-                feedback: "¡Correcto! Las pruebas unitarias son la base de la pirámide. Al ser ultrarrápidas y económicas de ejecutar, deben constituir la mayor cantidad del suite de pruebas para brindar retroalimentación inmediata al desarrollador."
-            },
-            {
-                id: 2,
-                question: "¿Qué verifican principalmente las pruebas de integración?",
-                options: [
-                    "El tiempo que tarda el usuario en iniciar sesión en la pantalla",
-                    "Una función o método aislado sin dependencias externas",
-                    "La comunicación y transferencia correcta de datos entre dos o más componentes",
-                    "El diseño visual y CSS de la página web"
-                ],
-                correct: 2,
-                feedback: "¡Muy bien! Las pruebas de integración comprueban cómo interactúan varios componentes o servicios entre sí (por ejemplo, ver si la API backend guarda correctamente los datos recibidos del frontend en la base de datos)."
-            },
-            {
-                id: 3,
-                question: "¿Cuáles son las principales desventajas de las pruebas End-to-End (E2E)?",
-                options: [
-                    "Son demasiado rápidas y no detectan errores reales",
-                    "Son más lentas, costosas de ejecutar y complejas de mantener",
-                    "No pueden simular las acciones de un usuario real",
-                    "No requieren entorno de pruebas"
-                ],
-                correct: 1,
-                feedback: "¡Exacto! Al simular el comportamiento completo de un usuario navegando por la aplicación real, las pruebas E2E requieren más recursos, tardan minutos en ejecutarse y son frágiles ante cambios menores en la interfaz."
-            },
-            {
-                id: 4,
-                question: "¿Qué ventaja clave ofrece la detección temprana de errores mediante la Testing Pyramid?",
-                options: [
-                    "Garantiza que el software nunca requerirá actualizaciones",
-                    "Elimina la necesidad de programadores en el proyecto",
-                    "Reduce el impacto en el usuario final y disminuye drásticamente el costo de corrección",
-                    "Aumenta la lentitud de los despliegues a producción"
-                ],
-                correct: 2,
-                feedback: "¡Correcto! Detectar un error en la etapa de desarrollo con una prueba unitaria cuesta una fracción de tiempo y dinero en comparación a corregir un bug descubierto en producción por el usuario final."
-            },
-            {
-                id: 5,
-                question: "En un sistema de E-Commerce, ¿cuál de los siguientes es un ejemplo directo de Prueba Unitaria?",
-                options: [
-                    "Simular el login, agregar productos al carrito y pagar con Stripe",
-                    "Verificar que la base de datos guarde la compra",
-                    "Probar una función que calcula el subtotal y aplica un descuento del 16% de IVA",
-                    "Abrir el navegador para verificar la respuesta visual del servidor"
-                ],
-                correct: 2,
-                feedback: "¡Excelente! Probar una función matemática de cálculo de precios en aislamiento (sin tocar base de datos ni servidor) es el ejemplo clásico de una prueba unitaria pura."
-            }
-        ];
-
-        function renderQuiz() {
-            const container = document.getElementById('quiz-container');
-            container.innerHTML = '';
-
-            quizQuestions.forEach((q, qIndex) => {
-                const card = document.createElement('div');
-                card.className = 'glass-panel p-6 rounded-2xl border border-slate-800 space-y-4';
-                card.id = `q-card-${q.id}`;
-
-                card.innerHTML = `
-                    <div class="flex items-start justify-between gap-4">
-                        <h3 class="font-bold text-white text-base sm:text-lg flex items-center">
-                            <span class="w-7 h-7 rounded-lg bg-purple-500/20 text-purple-400 border border-purple-500/30 font-extrabold flex items-center justify-center text-xs mr-3 shrink-0">
-                                ${q.id}
-                            </span>
-                            ${q.question}
-                        </h3>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                        ${q.options.map((opt, optIndex) => `
-                            <button onclick="checkAnswer(${q.id}, ${optIndex})" 
-                                    id="btn-q${q.id}-opt${optIndex}" 
-                                    class="quiz-option-btn p-3.5 text-left text-xs sm:text-sm rounded-xl bg-slate-900/80 border border-slate-800 hover:border-purple-500/50 hover:bg-slate-800/80 text-slate-300 font-medium transition-all flex items-center justify-between group">
-                                <span>${opt}</span>
-                                <i class="fa-regular fa-circle text-slate-600 group-hover:text-purple-400 text-sm shrink-0 ml-2"></i>
-                            </button>
-                        `).join('')}
-                    </div>
-
-                    <!-- Retroalimentación -->
-                    <div id="feedback-${q.id}" class="hidden p-4 rounded-xl text-xs sm:text-sm space-y-1 transition-all"></div>
-                `;
-
-                container.appendChild(card);
-            });
-        }
-
-        function checkAnswer(questionId, selectedOptIndex) {
-            const q = quizQuestions.find(item => item.id === questionId);
-            const feedbackEl = document.getElementById(`feedback-${questionId}`);
-
-            // Deshabilitar botones de esta pregunta
-            q.options.forEach((_, idx) => {
-                const btn = document.getElementById(`btn-q${questionId}-opt${idx}`);
-                btn.disabled = true;
-                btn.classList.add('cursor-not-allowed', 'opacity-60');
-            });
-
-            const selectedBtn = document.getElementById(`btn-q${questionId}-opt${selectedOptIndex}`);
-            const correctBtn = document.getElementById(`btn-q${questionId}-opt${q.correct}`);
-
-            const isCorrect = selectedOptIndex === q.correct;
-
-            if (isCorrect) {
-                selectedBtn.className = 'p-3.5 text-left text-xs sm:text-sm rounded-xl bg-emerald-950/80 border border-emerald-500 text-emerald-200 font-semibold flex items-center justify-between';
-                selectedBtn.querySelector('i').className = 'fa-solid fa-circle-check text-emerald-400 text-base shrink-0 ml-2';
-
-                feedbackEl.className = 'p-4 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-200 text-xs sm:text-sm space-y-1 block';
-                feedbackEl.innerHTML = `
-                    <div class="font-bold flex items-center text-emerald-400">
-                        <i class="fa-solid fa-circle-check mr-2"></i> ¡Respuesta Correcta!
-                    </div>
-                    <p class="text-slate-300 leading-relaxed mt-1">${q.feedback}</p>
-                `;
-            } else {
-                selectedBtn.className = 'p-3.5 text-left text-xs sm:text-sm rounded-xl bg-rose-950/80 border border-rose-500 text-rose-200 font-semibold flex items-center justify-between';
-                selectedBtn.querySelector('i').className = 'fa-solid fa-circle-xmark text-rose-400 text-base shrink-0 ml-2';
-
-                // Mostrar cuál era la correcta
-                correctBtn.className = 'p-3.5 text-left text-xs sm:text-sm rounded-xl bg-emerald-950/50 border border-emerald-500/50 text-emerald-300 font-semibold flex items-center justify-between opacity-100';
-                correctBtn.querySelector('i').className = 'fa-solid fa-circle-check text-emerald-400 text-base shrink-0 ml-2';
-
-                feedbackEl.className = 'p-4 rounded-xl bg-rose-950/40 border border-rose-500/40 text-rose-200 text-xs sm:text-sm space-y-1 block';
-                feedbackEl.innerHTML = `
-                    <div class="font-bold flex items-center text-rose-400">
-                        <i class="fa-solid fa-circle-xmark mr-2"></i> Respuesta Incorrecta
-                    </div>
-                    <p class="text-slate-300 leading-relaxed mt-1">${q.feedback}</p>
-                `;
-            }
-        }
-
-        // Inicializar al cargar ventana
-        window.onload = function() {
-            // Cargar por defecto el nivel 1 (Unitarias)
-            selectTier('unit');
-            // Renderizar Cuestionario
-            renderQuiz();
-        };
-    </script>
+    // Inicializar controles
+    updateSlides();
+  </script>
 </body>
 </html>
